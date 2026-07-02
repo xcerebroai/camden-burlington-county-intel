@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Camden · Burlington County | Motivated Seller Intelligence</title>
+<!--
+  Public build. Reads window.LEADS from data.js. Owner names + property addresses
+  are public records; DealMachine skip-traced phones/emails are REDACTED from this
+  payload. NO scores/tiers/ranking; filter-driven; default order = most recent first.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="data.js"></script>
+<style>
+  :root{
+    --black:#0a0b0d; --bg:#0a0b0d; --panel:#111318; --panel2:#181c22; --black4:#1e232b;
+    --line:rgba(255,255,255,0.06); --txt:#f0f2f5; --muted:#7a8394; --grey2:#b0b8c8;
+    --gold:#d4a017; --gold2:#f5c842; --gold3:#ffe066; --accent:#d4a017; --accent-dim:rgba(212,160,23,0.15);
+    --blue:#1a6cff; --red:#e03a3a; --green:#21a06b; --chip:#181c22;
+    --cat-pf:#ff6b35; --cat-vac:#1a6cff; --cat-tax:#d4a017; --cat-hoa:#9b59b6; --cat-tl:#e03a3a; --cat-prob:#21a06b; --cat-exp:#7a8394;
+    --font-display:'Bebas Neue',sans-serif; --font-body:'IBM Plex Sans',sans-serif; --font-mono:'IBM Plex Mono',monospace;
+    font-family:var(--font-body);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font-size:13px;font-family:var(--font-body)}
+  header{display:flex;align-items:center;gap:16px;padding:12px 22px;border-bottom:1px solid var(--gold);background:var(--panel)}
+  .logo{display:flex;align-items:center;gap:11px}
+  .logo-icon{width:38px;height:38px;display:grid;place-items:center;background:var(--gold);color:#0a0b0d;
+    font-family:var(--font-display);font-size:22px;letter-spacing:1px;border-radius:3px}
+  .logo-text{font-family:var(--font-display);font-size:23px;letter-spacing:1.5px;line-height:1;color:var(--gold2)}
+  .logo-sub{font-family:var(--font-mono);font-size:10px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-top:3px}
+  header .count{margin-left:auto;font-family:var(--font-mono);font-size:12px;color:var(--muted);text-align:right}
+  header .count b{color:var(--gold2);font-family:var(--font-display);font-size:22px;letter-spacing:1px;display:block}
+  .wrap{display:flex;height:calc(100vh - 51px)}
+  aside{width:280px;flex:0 0 280px;overflow-y:auto;border-right:1px solid var(--line);background:var(--panel);padding:14px}
+  aside h3{font-size:10px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin:16px 0 6px;border-left:2px solid var(--gold);padding-left:6px}
+  aside h3:first-child{margin-top:0}
+  input,select{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--txt);
+    border-radius:6px;padding:6px 8px;font-size:12px;font-family:inherit}
+  select[multiple]{height:112px}
+  .row2{display:flex;gap:6px}
+  .toggle{display:flex;align-items:center;gap:7px;padding:5px 0;cursor:pointer;color:var(--txt)}
+  .toggle input{width:auto}
+  .radio label{display:inline-flex;gap:4px;align-items:center;margin-right:10px;color:var(--muted);cursor:pointer}
+  button.reset{margin-top:16px;width:100%;background:var(--accent-dim);border:1px solid var(--accent);
+    color:var(--txt);padding:8px;border-radius:6px;cursor:pointer;font-weight:600}
+  main{flex:1;overflow:auto;position:relative}
+  table{width:100%;border-collapse:collapse}
+  thead th{position:sticky;top:0;background:var(--panel2);text-align:left;padding:9px 10px;
+    font-size:10px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.8px;color:var(--gold);
+    border-bottom:1px solid var(--gold);cursor:pointer}
+  tbody td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  tbody td:nth-child(2){font-family:var(--font-mono);font-size:12px;color:var(--grey2)}
+  .sec h4{color:var(--gold) !important}
+  tbody tr:hover{background:var(--panel2);cursor:pointer}
+  tbody tr.sel{background:#0f1b30}
+  .chip{display:inline-block;background:var(--chip);color:var(--grey2);border:1px solid var(--line);
+    border-radius:2px;padding:1px 7px;font-size:10px;font-family:var(--font-mono);letter-spacing:.3px;
+    text-transform:uppercase;margin:1px 3px 1px 0;white-space:nowrap}
+  .chip.stage{background:rgba(26,108,255,0.12);color:var(--blue2,#3d8bff);border-color:rgba(26,108,255,0.3)}
+  .chip.unk{background:rgba(122,131,148,0.1);color:var(--muted);border-color:var(--line)}
+  .chip.ph{background:rgba(33,160,107,0.18);color:#4fd39a;border-color:rgba(33,160,107,0.4)}
+  /* distress category colors (match Harris) */
+  .dz-flag_preforeclosure{background:rgba(255,107,53,0.15);color:#ff9d73;border-color:rgba(255,107,53,0.4)}
+  .dz-flag_vacant{background:rgba(26,108,255,0.15);color:#6aaeff;border-color:rgba(26,108,255,0.4)}
+  .dz-flag_tax_delinquent{background:rgba(212,160,23,0.15);color:var(--gold2);border-color:rgba(212,160,23,0.4)}
+  .dz-flag_hoa_lien{background:rgba(155,89,182,0.15);color:#c493d6;border-color:rgba(155,89,182,0.4)}
+  .dz-flag_tired_landlord{background:rgba(224,58,58,0.15);color:#f08a8a;border-color:rgba(224,58,58,0.4)}
+  .dz-flag_probate{background:rgba(33,160,107,0.15);color:#4fd39a;border-color:rgba(33,160,107,0.4)}
+  .dz-flag_expired_listing{background:rgba(122,131,148,0.15);color:var(--grey2);border-color:rgba(122,131,148,0.4)}
+  .muted{color:var(--muted)}
+  .drawer{position:fixed;top:0;right:0;width:460px;height:100vh;background:var(--panel);
+    border-left:1px solid var(--line);overflow-y:auto;transform:translateX(100%);
+    transition:transform .18s ease;box-shadow:-16px 0 40px rgba(0,0,0,.5);z-index:20}
+  .drawer.open{transform:translateX(0)}
+  .drawer .dhead{padding:16px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--panel)}
+  .drawer .dhead h2{margin:0 0 3px;font-size:16px}
+  .drawer .x{position:absolute;top:14px;right:16px;cursor:pointer;color:var(--muted);font-size:18px}
+  .sec{padding:14px 18px;border-bottom:1px solid var(--line)}
+  .sec h4{margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--accent)}
+  .kv{display:flex;justify-content:space-between;gap:10px;padding:2px 0}
+  .kv span:first-child{color:var(--muted)}
+  .sig{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:8px;margin-bottom:6px}
+  .btn{background:var(--accent-dim);border:1px solid var(--accent);color:var(--txt);padding:6px 10px;
+    border-radius:6px;cursor:pointer;font-size:12px;margin-top:6px}
+  .banner{background:#1a1206;border:1px solid var(--warn);color:#e0b878;padding:6px 8px;border-radius:6px;font-size:11px;margin-top:8px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <div class="logo-icon">CB</div>
+    <div>
+      <div class="logo-text">CAMDEN · BURLINGTON INTEL</div>
+      <div class="logo-sub">Motivated Seller Intelligence · filter-driven · no scoring</div>
+    </div>
+  </div>
+  <div class="count"><b id="shown">0</b>showing of <span id="total">0</span> parcels</div>
+</header>
+<div class="wrap">
+  <aside id="filters">
+    <h3>Search</h3>
+    <input id="q" placeholder="owner, address, party…"/>
+    <h3>County</h3>
+    <select id="f-county" multiple></select>
+    <h3>Municipality</h3>
+    <select id="f-muni" multiple></select>
+    <h3>Doc type</h3>
+    <select id="f-doc" multiple></select>
+    <h3>Lead stage</h3>
+    <select id="f-stage" multiple></select>
+    <h3>Property class</h3>
+    <select id="f-class" multiple></select>
+    <h3>Attributes</h3>
+    <label class="toggle"><input type="checkbox" id="a-absentee"> absentee (mailing ≠ situs)</label>
+    <label class="toggle"><input type="checkbox" id="a-out_of_state"> out-of-state owner</label>
+    <label class="toggle"><input type="checkbox" id="a-long_term_owned"> long-term owned (&gt;15y)</label>
+    <label class="toggle"><input type="checkbox" id="a-high_equity"> high equity (assessed ≥ 2× sale)</label>
+    <label class="toggle"><input type="checkbox" id="a-multiple_distress"> multiple distress (≥2 signals)</label>
+    <div class="banner" id="attr-note" style="display:none"></div>
+    <h3>Distress lists</h3>
+    <label class="toggle"><input type="checkbox" id="d-flag_preforeclosure"> preforeclosure</label>
+    <label class="toggle"><input type="checkbox" id="d-flag_vacant"> vacant</label>
+    <label class="toggle"><input type="checkbox" id="d-flag_tax_delinquent"> tax delinquent</label>
+    <label class="toggle"><input type="checkbox" id="d-flag_hoa_lien"> HOA lien</label>
+    <label class="toggle"><input type="checkbox" id="d-flag_tired_landlord"> tired landlord</label>
+    <label class="toggle"><input type="checkbox" id="d-flag_probate"> probate</label>
+    <label class="toggle"><input type="checkbox" id="d-flag_expired_listing"> expired listing</label>
+    <label class="toggle"><input type="checkbox" id="d-single_family"> single-family only</label>
+    <div class="banner" id="distress-note" style="display:none"></div>
+    <h3>Contact</h3>
+    <label class="toggle"><input type="checkbox" id="c-has_phone"> has phone #</label>
+    <h3>Enrichment</h3>
+    <div class="radio" id="f-enr">
+      <label><input type="radio" name="enr" value="all" checked> all</label>
+      <label><input type="radio" name="enr" value="enriched"> enriched</label>
+      <label><input type="radio" name="enr" value="unenriched"> not enriched</label>
+    </div>
+    <h3>Most-recent date</h3>
+    <div class="row2"><input type="date" id="d-from"><input type="date" id="d-to"></div>
+    <h3>Year built</h3>
+    <div class="row2"><input type="number" id="y-min" placeholder="min"><input type="number" id="y-max" placeholder="max"></div>
+    <button class="reset" id="reset">Reset filters</button>
+  </aside>
+  <main>
+    <table>
+      <thead><tr>
+        <th data-sort="owner">Owner</th><th data-sort="address">Address</th>
+        <th data-sort="municipality">Municipality</th><th>Stage</th>
+        <th>Doc type</th><th data-sort="most_recent_date">Most recent</th><th>Attributes</th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </main>
+</div>
+<div class="drawer" id="drawer"></div>
+
+<script>
+const DATA = (window.LEADS||{records:[],filters:{}});
+const RECS = DATA.records||[];
+const ENR_ATTRS = ["absentee","out_of_state","long_term_owned","high_equity"]; // enrichment-dependent
+const DISTRESS = ["flag_preforeclosure","flag_vacant","flag_tax_delinquent","flag_hoa_lien","flag_tired_landlord","flag_probate","flag_expired_listing"];
+const DLABEL = {flag_preforeclosure:"preforeclosure",flag_vacant:"vacant",flag_tax_delinquent:"tax delinquent",flag_hoa_lien:"HOA lien",flag_tired_landlord:"tired landlord",flag_probate:"probate",flag_expired_listing:"expired listing"};
+// a record carries distress flags only if it came from a distress-list pull
+const distressKnown = r => r.flag_preforeclosure !== undefined;
+const el = id => document.getElementById(id);
+const isEnriched = r => r.enrichment_status === "ENRICHED";
+
+function fill(sel, vals){ el(sel).innerHTML = vals.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join(""); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function selVals(sel){ return [...el(sel).selectedOptions].map(o=>o.value); }
+
+// populate facets
+const f = DATA.filters||{};
+fill("f-county", [...new Set(RECS.map(r=>r.county).filter(Boolean))].sort());
+fill("f-muni", f.municipalities||[]);
+fill("f-doc", f.doc_types||[]);
+fill("f-stage", f.lead_stages||[]);
+fill("f-class", f.property_classes||[]);
+el("total").textContent = RECS.length;
+
+let sortKey="most_recent_date", sortDir=-1, selId=null;
+
+function matches(r){
+  const q = el("q").value.trim().toLowerCase();
+  if(q){
+    const hay = [r.owner, r.address, ...(r.owner_all_parties||[])].join(" ").toLowerCase();
+    if(!hay.includes(q)) return false;
+  }
+  const cty=selVals("f-county"); if(cty.length && !cty.includes(r.county)) return false;
+  const mun=selVals("f-muni"); if(mun.length && !mun.includes(r.municipality)) return false;
+  const doc=selVals("f-doc"); if(doc.length && !(r.doc_types||[]).some(d=>doc.includes(d))) return false;
+  const stg=selVals("f-stage"); if(stg.length && !(r.lead_stages||[]).some(s=>stg.includes(s))) return false;
+  const cls=selVals("f-class"); if(cls.length && !cls.includes(r.property_class)) return false;
+  // multiple_distress is known for every record (signal count)
+  if(el("a-multiple_distress").checked && !r.multiple_distress) return false;
+  // enrichment-dependent attributes: require enriched & true (unenriched excluded, counted separately)
+  for(const a of ENR_ATTRS){ if(el("a-"+a).checked && !(isEnriched(r) && r[a])) return false; }
+  // distress-list flags: require flag===true. A record without the flag is UNKNOWN
+  // (not from a distress list) — excluded from a true-filter, never read as false.
+  for(const f of DISTRESS){ if(el("d-"+f).checked && r[f]!==true) return false; }
+  if(el("d-single_family").checked && r.single_family!==true) return false;
+  if(el("c-has_phone").checked && !((r.contact_phones||[]).length>0)) return false;
+  const enr=[...document.querySelectorAll('input[name=enr]')].find(x=>x.checked).value;
+  if(enr==="enriched" && !isEnriched(r)) return false;
+  if(enr==="unenriched" && isEnriched(r)) return false;
+  const df=el("d-from").value, dt=el("d-to").value, d=r.most_recent_date||"";
+  if(df && d < df) return false;
+  if(dt && d > dt) return false;
+  const ymin=el("y-min").value, ymax=el("y-max").value, yb=r.year_built;
+  if(ymin && (!yb || yb < +ymin)) return false;
+  if(ymax && (!yb || yb > +ymax)) return false;
+  return true;
+}
+
+function attrChips(r){
+  let c="";
+  DISTRESS.forEach(f=>{ if(r[f]===true) c+=`<span class="chip ${f.replace('flag_','dz-flag_')}">${DLABEL[f]}</span>`; });
+  if(!isEnriched(r)) c+=`<span class="chip unk">not enriched</span>`;
+  else ENR_ATTRS.forEach(a=>{ if(r[a]) c+=`<span class="chip">${a.replace(/_/g,' ')}</span>`; });
+  if((r.contact_phones||[]).length) c+=`<span class="chip ph">☎ phone</span>`;
+  if(r.multiple_distress) c+=`<span class="chip">${r.signal_count} signals</span>`;
+  return c || `<span class="muted">—</span>`;
+}
+
+function render(){
+  const out = RECS.filter(matches);
+  out.sort((a,b)=>{ const x=a[sortKey]||"",y=b[sortKey]||""; return x<y?sortDir:x>y?-sortDir:0; });
+  el("shown").textContent = out.length;
+  el("rows").innerHTML = out.slice(0,1000).map(r=>`
+    <tr data-id="${esc(r.id)}" class="${r.id===selId?'sel':''}">
+      <td>${esc(r.owner)}${r.owner_corrected?' <span class="chip" title="display owner corrected from LP party">✓owner</span>':''}</td>
+      <td>${esc(r.address)||'<span class=muted>—</span>'}</td>
+      <td>${esc(r.municipality)}</td>
+      <td>${(r.lead_stages||[]).map(s=>`<span class="chip stage">${esc(s)}</span>`).join('')}</td>
+      <td>${(r.doc_types||[]).map(d=>`<span class="chip">${esc(d)}</span>`).join('')}</td>
+      <td>${esc(r.most_recent_date)||'—'}</td>
+      <td>${attrChips(r)}</td>
+    </tr>`).join("");
+  // honest note: how many leads the active attribute filters excluded for being unenriched
+  const attrOn = ENR_ATTRS.some(a=>el("a-"+a).checked);
+  if(attrOn){
+    const hidden = RECS.filter(r=>!isEnriched(r)).length;
+    el("attr-note").style.display="block";
+    el("attr-note").textContent = `Attribute filters apply to enriched leads only. ${hidden} not-enriched parcels (attributes unknown) are not shown as matches — use "not enriched" to review them.`;
+  } else el("attr-note").style.display="none";
+  // honest note for distress-flag filters: records not from a distress list are unknown
+  const dzOn = DISTRESS.some(f=>el("d-"+f).checked) || el("d-single_family").checked;
+  if(dzOn){
+    const unknown = RECS.filter(r=>!distressKnown(r)).length;
+    el("distress-note").style.display="block";
+    el("distress-note").textContent = `Distress flags exist only on distress-list leads. ${unknown} leads (sheriff/court only) are UNKNOWN for these flags — excluded from a true-filter, never counted as "not vacant/etc."`;
+  } else el("distress-note").style.display="none";
+  el("rows").querySelectorAll("tr").forEach(tr=>tr.onclick=()=>openDrawer(tr.dataset.id));
+}
+
+function openDrawer(id){
+  const r = RECS.find(x=>x.id===id); if(!r) return; selId=id;
+  const p = r.parcel||{};
+  const money = v => (v==null?'<span class=muted>unknown</span>':'$'+Number(v).toLocaleString());
+  const enrRows = isEnriched(r) ? `
+    <div class="kv"><span>Block / Lot / Qual</span><span>${esc(p.block)} / ${esc(p.lot)} / ${esc(p.qualifier)||'—'}</span></div>
+    <div class="kv"><span>Property class</span><span>${esc(r.property_class)||'—'}</span></div>
+    <div class="kv"><span>Year built</span><span>${esc(r.year_built)||'—'}</span></div>
+    <div class="kv"><span>Assessed value</span><span>${money(r.assessed_value)}</span></div>
+    <div class="kv"><span>Last sale</span><span>${money(p.last_sale_price)} ${p.last_sale_date?('· '+esc(p.last_sale_date)):''}</span></div>
+    <div class="kv"><span>Equity proxy (assessed/sale)</span><span>${r.equity_proxy_ratio!=null?esc(r.equity_proxy_ratio)+'×':'<span class=muted>n/a</span>'}</span></div>
+    <div class="kv"><span>Owner mailing</span><span>${esc(p.owner_mailing_address)||'—'}, ${esc(p.owner_mailing_city)} ${esc(p.owner_mailing_state)} ${esc(p.owner_mailing_zip)}</span></div>
+    <div style="margin-top:6px">${ENR_ATTRS.filter(a=>r[a]).map(a=>`<span class="chip">${a.replace(/_/g,' ')}</span>`).join('')||'<span class=muted>no attribute flags</span>'}</div>`
+    : `<div class="banner">Not enriched — no MOD-IV parcel match. Attributes (absentee / equity / year built) are UNKNOWN for this parcel, not false.</div>`;
+  el("drawer").innerHTML = `
+    <div class="dhead"><span class="x" onclick="closeDrawer()">✕</span>
+      <h2>${esc(r.owner)}</h2>
+      <div class="muted">${esc(r.address)||'address n/a'} · ${esc(r.municipality)}, ${esc(r.county)}</div>
+    </div>
+    <div class="sec"><h4>Lead</h4>
+      <div class="kv"><span>Lead type</span><span>${esc(r.lead_type)}</span></div>
+      <div class="kv"><span>Stages</span><span>${(r.lead_stages||[]).join(', ')}</span></div>
+      <div class="kv"><span>Sources</span><span>${(r.sources||[]).join(', ')}</span></div>
+      <div class="kv"><span>Signals on parcel</span><span>${r.signal_count}${r.multiple_distress?' (multiple distress)':''}</span></div>
+      ${(r.review_flags||[]).length?`<div class="banner">flags: ${r.review_flags.join(', ')}</div>`:''}
+    </div>
+    <div class="sec"><h4>Distress signals</h4>
+      ${distressKnown(r)
+        ? (DISTRESS.filter(f=>r[f]===true).map(f=>`<span class="chip ${f.replace('flag_','dz-flag_')}">${DLABEL[f]}</span>`).join('')
+           + (r.single_family===true?'<span class="chip">single-family</span>':'')
+           || '<span class=muted>on a distress list, no additional flags set</span>')
+        : '<div class="banner">Not from a distress list — vacant / tax-delinquent / probate / etc. are UNKNOWN for this lead, not false.</div>'}
+    </div>
+    <div class="sec"><h4>All parties (record detail)</h4>
+      ${(r.owner_all_parties||[]).map(x=>`<div>${esc(x)}</div>`).join('')||'<span class=muted>—</span>'}
+      ${r.owner_corrected?'<div class="muted" style="margin-top:6px">Primary owner shown is the sheriff-sale-side homeowner (LP party was a government/institutional lienholder).</div>':''}
+    </div>
+    <div class="sec"><h4>Source records</h4>
+      ${(r.signals||[]).map(s=>`<div class="sig">
+        <b>${esc(s.source)}</b> · ${esc(s.doc_type)}<br>
+        <span class="muted">${esc(s.lead_stage)} · ${esc(s.date)||'no date'} · ref ${esc(s.instrument)||'—'}</span></div>`).join('')}
+    </div>
+    <div class="sec"><h4>Parcel & enrichment</h4>${enrRows}</div>
+    <div class="sec"><h4>Contact</h4>
+      ${r.enriched_contact ? `
+        ${r.contact_name?`<div class="kv"><span>Owner</span><span>${esc(r.contact_name)}</span></div>`:''}
+        <div class="kv"><span>Phones</span><span>${(r.contact_phones||[]).map(fmtPhone).join('<br>')||'<span class=muted>none</span>'}</span></div>
+        <div class="kv"><span>Emails</span><span>${(r.contact_emails||[]).map(esc).join('<br>')||'<span class=muted>none</span>'}</span></div>
+        ${r.estimated_value?`<div class="kv"><span>Est. value</span><span>$${Number(r.estimated_value).toLocaleString()}</span></div>`:''}`
+      : `<div class="banner">No contact match — address not found. Try the ${esc(r.municipality)||''} list export.</div>`}
+      <button class="btn" onclick='copyDM(${JSON.stringify(JSON.stringify(dmRow(r)))})'>Copy export row</button>
+    </div>`;
+  el("drawer").classList.add("open"); render();
+}
+function closeDrawer(){ selId=null; el("drawer").classList.remove("open"); render(); }
+function dmRow(r){ const p=r.parcel||{}; return {
+  owner_name:r.owner, property_address:r.address, property_municipality:r.municipality,
+  property_county:r.county, mailing_address:p.owner_mailing_address||"",
+  mailing_city:p.owner_mailing_city||"", mailing_state:p.owner_mailing_state||"", mailing_zip:p.owner_mailing_zip||"",
+  lead_type:r.lead_type, lead_stages:(r.lead_stages||[]).join("|"), sources:(r.sources||[]).join("|"),
+  block:p.block||"", lot:p.lot||"", qualifier:p.qualifier||"" }; }
+function fmtPhone(n){ const d=String(n).replace(/\D/g,''); return d.length===10?`(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}`:esc(n); }
+function copyDM(s){ navigator.clipboard.writeText(s).then(()=>alert("export row copied")); }
+
+// wire events
+document.querySelectorAll("aside input, aside select").forEach(x=>{
+  x.addEventListener("input",render); x.addEventListener("change",render);
+});
+document.querySelectorAll("th[data-sort]").forEach(th=>th.onclick=()=>{
+  const k=th.dataset.sort; sortDir = (sortKey===k)? -sortDir : (k==="most_recent_date"?-1:1); sortKey=k; render();
+});
+el("reset").onclick=()=>{ document.querySelectorAll("aside input").forEach(i=>{ if(i.type==='checkbox')i.checked=false; else if(i.type!=='radio')i.value=''; });
+  document.querySelectorAll("aside select").forEach(s=>[...s.options].forEach(o=>o.selected=false));
+  document.querySelector('input[name=enr][value=all]').checked=true; render(); };
+render();
+</script>
+</body>
+</html>
