@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Camden · Burlington County | Motivated Seller Intelligence</title>
 <!--
-  Public build. Reads window.LEADS from data.js. Owner names + property addresses
-  are public records; DealMachine skip-traced phones/emails are REDACTED from this
-  payload. NO scores/tiers/ranking; filter-driven; default order = most recent first.
+  LOCAL / INTERNAL. Reads window.LEADS from data.js (gitignored, real PII).
+  Double-click to open, or serve locally: python3 -m http.server.
+  NO scores. NO tiers. NO ranking. Filter-driven; default order = most recent first.
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -84,7 +84,24 @@
   .sig{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:8px;margin-bottom:6px}
   .btn{background:var(--accent-dim);border:1px solid var(--accent);color:var(--txt);padding:6px 10px;
     border-radius:6px;cursor:pointer;font-size:12px;margin-top:6px}
-  .banner{background:#1a1206;border:1px solid var(--warn);color:#e0b878;padding:6px 8px;border-radius:6px;font-size:11px;margin-top:8px}
+  .banner{background:rgba(212,160,23,0.1);border:1px solid rgba(212,160,23,0.35);color:var(--gold2);padding:6px 8px;border-radius:2px;font-size:11px;margin-top:8px;font-family:var(--font-mono)}
+  .toolbar{display:flex;gap:8px;align-items:center;padding:9px 22px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .btn-tool{background:var(--black4);border:1px solid var(--line);color:var(--grey2);font-family:var(--font-mono);
+    font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:6px 12px;border-radius:2px;cursor:pointer}
+  .btn-tool:hover{border-color:var(--gold)}
+  .btn-tool.gold{background:var(--gold);color:#0a0b0d;border-color:var(--gold);font-weight:600}
+  .tb-note{margin-left:auto;font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+  .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:40;place-items:center}
+  .modal.open{display:grid}
+  .modal-box{background:var(--panel);border:1px solid var(--gold);border-radius:4px;width:380px;max-width:92vw}
+  .modal-head{font-family:var(--font-display);font-size:20px;letter-spacing:1px;color:var(--gold2);padding:14px 16px;border-bottom:1px solid var(--line);position:relative}
+  .modal-head .x{position:absolute;right:14px;top:14px;cursor:pointer;color:var(--muted)}
+  .calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px}
+  .calc-grid label{display:flex;flex-direction:column;gap:4px;font-family:var(--font-mono);font-size:10px;text-transform:uppercase;color:var(--muted)}
+  .calc-out{padding:0 16px 16px}
+  .calc-row{display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--line)}
+  .calc-row b{font-family:var(--font-mono);color:var(--gold2);font-size:16px}
+  .calc-row.muted span{color:var(--muted);font-size:10px}
 </style>
 </head>
 <body>
@@ -98,6 +115,27 @@
   </div>
   <div class="count"><b id="shown">0</b>showing of <span id="total">0</span> parcels</div>
 </header>
+<div class="toolbar">
+  <button class="btn-tool gold" onclick="openCalc()">📐 Deal Calculator</button>
+  <button class="btn-tool" onclick="exportCSV()">⬇ Export CSV (filtered)</button>
+  <span class="tb-note" id="tb-note"></span>
+</div>
+<div class="modal" id="calc-modal">
+  <div class="modal-box">
+    <div class="modal-head">Deal Calculator <span class="x" onclick="closeCalc()">✕</span></div>
+    <div class="calc-grid">
+      <label>ARV (after-repair value)<input type="number" id="c-arv" value="0" oninput="calc()"></label>
+      <label>Estimated repairs<input type="number" id="c-rep" value="0" oninput="calc()"></label>
+      <label>MAO % of ARV<input type="number" id="c-pct" value="70" oninput="calc()"></label>
+      <label>Assignment fee<input type="number" id="c-fee" value="10000" oninput="calc()"></label>
+    </div>
+    <div class="calc-out">
+      <div class="calc-row"><span>Max Allowable Offer (MAO)</span><b id="c-mao">$0</b></div>
+      <div class="calc-row"><span>MAO minus your assignment fee</span><b id="c-buy">$0</b></div>
+      <div class="calc-row muted"><span>= (ARV × MAO%) − repairs − fee</span><span></span></div>
+    </div>
+  </div>
+</div>
 <div class="wrap">
   <aside id="filters">
     <h3>Search</h3>
@@ -318,6 +356,35 @@ function dmRow(r){ const p=r.parcel||{}; return {
   block:p.block||"", lot:p.lot||"", qualifier:p.qualifier||"" }; }
 function fmtPhone(n){ const d=String(n).replace(/\D/g,''); return d.length===10?`(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}`:esc(n); }
 function copyDM(s){ navigator.clipboard.writeText(s).then(()=>alert("export row copied")); }
+// --- Deal calculator ---
+const $c=id=>+(el(id).value||0);
+function openCalc(){ el("calc-modal").classList.add("open"); calc(); }
+function closeCalc(){ el("calc-modal").classList.remove("open"); }
+function calc(){
+  const arv=$c("c-arv"), rep=$c("c-rep"), pct=$c("c-pct")/100, fee=$c("c-fee");
+  const mao=Math.max(0, arv*pct - rep);
+  el("c-mao").textContent="$"+Math.round(mao).toLocaleString();
+  el("c-buy").textContent="$"+Math.round(Math.max(0,mao-fee)).toLocaleString();
+}
+// --- CSV export of the current filtered view ---
+function exportCSV(){
+  const rows=RECS.filter(matches);
+  const cols=["county","municipality","owner","property_address","mailing_address","lead_type",
+    "lead_stages","distress_flags","absentee","out_of_state","assessed_value","estimated_value",
+    "most_recent_date","phones"];
+  const q=v=>`"${String(v==null?"":v).replace(/"/g,'""')}"`;
+  const line=r=>{ const p=r.parcel||{}; return [r.county,r.municipality,r.owner,r.address,
+    p.owner_mailing_address,r.lead_type,(r.lead_stages||[]).join("|"),
+    DISTRESS.filter(f=>r[f]===true).map(f=>DLABEL[f]).join("|"),
+    r.absentee?"Y":"",r.out_of_state?"Y":"",r.assessed_value,r.estimated_value,
+    r.most_recent_date,(r.contact_phones||[]).join(" ")].map(q).join(","); };
+  const csv=[cols.map(q).join(","),...rows.map(line)].join("\n");
+  const url=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
+  const a=document.createElement("a");
+  a.href=url; a.download=`leads_${rows.length}_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+  URL.revokeObjectURL(url);
+  el("tb-note").textContent=`exported ${rows.length} filtered leads`;
+}
 
 // wire events
 document.querySelectorAll("aside input, aside select").forEach(x=>{
