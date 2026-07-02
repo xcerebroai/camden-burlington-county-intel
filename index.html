@@ -1,125 +1,160 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Camden · Burlington County | Motivated Seller Intelligence</title>
-<!--
-  LOCAL / INTERNAL. Reads window.LEADS from data.js (gitignored, real PII).
-  Double-click to open, or serve locally: python3 -m http.server.
-  NO scores. NO tiers. NO ranking. Filter-driven; default order = most recent first.
--->
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="data.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Camden · Burlington County Intel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --black:#0a0b0d; --bg:#0a0b0d; --panel:#111318; --panel2:#181c22; --black4:#1e232b;
-    --line:rgba(255,255,255,0.06); --txt:#f0f2f5; --muted:#7a8394; --grey2:#b0b8c8;
-    --gold:#d4a017; --gold2:#f5c842; --gold3:#ffe066; --accent:#d4a017; --accent-dim:rgba(212,160,23,0.15);
-    --blue:#1a6cff; --red:#e03a3a; --green:#21a06b; --chip:#181c22;
-    --cat-pf:#ff6b35; --cat-vac:#1a6cff; --cat-tax:#d4a017; --cat-hoa:#9b59b6; --cat-tl:#e03a3a; --cat-prob:#21a06b; --cat-exp:#7a8394;
-    --font-display:'Bebas Neue',sans-serif; --font-body:'IBM Plex Sans',sans-serif; --font-mono:'IBM Plex Mono',monospace;
-    font-family:var(--font-body);
+    --bg:#0a0b0d; --panel:#121418; --panel2:#171a1f; --line:#24282f;
+    --ink:#e9edf2; --grey:#aab2bd; --muted:#6b7482;
+    --gold:#d4a017; --gold2:#e8b923; --green:#2ecc71; --red:#e5484d;
+    --font:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    --font-display:'Bebas Neue',var(--font);
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--txt);font-size:13px;font-family:var(--font-body)}
-  header{display:flex;align-items:center;gap:16px;padding:12px 22px;border-bottom:1px solid var(--gold);background:var(--panel)}
-  .logo{display:flex;align-items:center;gap:11px}
-  .logo-icon{width:38px;height:38px;display:grid;place-items:center;background:var(--gold);color:#0a0b0d;
-    font-family:var(--font-display);font-size:22px;letter-spacing:1px;border-radius:3px}
-  .logo-text{font-family:var(--font-display);font-size:23px;letter-spacing:1.5px;line-height:1;color:var(--gold2)}
-  .logo-sub{font-family:var(--font-mono);font-size:10px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-top:3px}
-  header .count{margin-left:auto;font-family:var(--font-mono);font-size:12px;color:var(--muted);text-align:right}
-  header .count b{color:var(--gold2);font-family:var(--font-display);font-size:22px;letter-spacing:1px;display:block}
-  .wrap{display:flex;height:calc(100vh - 51px)}
-  aside{width:280px;flex:0 0 280px;overflow-y:auto;border-right:1px solid var(--line);background:var(--panel);padding:14px}
-  aside h3{font-size:10px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin:16px 0 6px;border-left:2px solid var(--gold);padding-left:6px}
-  aside h3:first-child{margin-top:0}
-  input,select{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--txt);
-    border-radius:6px;padding:6px 8px;font-size:12px;font-family:inherit}
-  select[multiple]{height:112px}
-  .row2{display:flex;gap:6px}
-  .toggle{display:flex;align-items:center;gap:7px;padding:5px 0;cursor:pointer;color:var(--txt)}
-  .toggle input{width:auto}
-  .radio label{display:inline-flex;gap:4px;align-items:center;margin-right:10px;color:var(--muted);cursor:pointer}
-  button.reset{margin-top:16px;width:100%;background:var(--accent-dim);border:1px solid var(--accent);
-    color:var(--txt);padding:8px;border-radius:6px;cursor:pointer;font-weight:600}
-  main{flex:1;overflow:auto;position:relative}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px}
+  a{color:var(--gold2);text-decoration:none}
+
+  header{display:flex;align-items:center;gap:16px;padding:16px 24px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#0d0f13,#0a0b0d)}
+  .logo{width:44px;height:44px;border:2px solid var(--gold);display:grid;place-items:center;font-family:var(--font-display);font-size:26px;color:var(--gold);border-radius:4px}
+  .brand h1{margin:0;font-family:var(--font-display);font-size:26px;letter-spacing:2px;line-height:1}
+  .brand p{margin:2px 0 0;color:var(--muted);font-size:12px;letter-spacing:.4px}
+  .brand b{color:var(--gold2)}
+
+  /* stat cards */
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:16px 24px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+  .card .k{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+  .card .v{font-family:var(--font-display);font-size:32px;letter-spacing:1px;margin-top:4px;color:var(--gold2)}
+  .card .s{font-size:11px;color:var(--grey);margin-top:2px}
+
+  /* view toggle */
+  .views{display:flex;gap:8px;padding:4px 24px 0}
+  .view-btn{background:transparent;border:1px solid var(--line);color:var(--grey);padding:8px 18px;border-radius:6px 6px 0 0;cursor:pointer;font-weight:600;font-size:13px;border-bottom:none}
+  .view-btn.active{background:var(--panel);color:var(--gold2);border-color:var(--gold)}
+
+  /* filter pills */
+  .pills{display:flex;flex-wrap:wrap;gap:8px;padding:14px 24px;background:var(--panel);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .pill{display:inline-flex;align-items:center;gap:7px;background:var(--panel2);border:1px solid var(--line);color:var(--grey);
+    padding:6px 12px;border-radius:20px;cursor:pointer;font-size:12.5px;font-weight:500;white-space:nowrap}
+  .pill:hover{border-color:var(--muted)}
+  .pill.active{background:var(--gold);color:#0a0b0d;border-color:var(--gold);font-weight:700}
+  .pill .n{font-size:11px;background:rgba(255,255,255,.08);padding:1px 7px;border-radius:10px;color:var(--grey)}
+  .pill.active .n{background:rgba(0,0,0,.18);color:#0a0b0d}
+
+  /* toolbar */
+  .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:12px 24px}
+  .toolbar input,.toolbar select{background:var(--panel);border:1px solid var(--line);color:var(--ink);
+    padding:8px 11px;border-radius:6px;font-family:var(--font);font-size:13px}
+  #q{flex:1;min-width:220px}
+  .btn{background:var(--panel2);border:1px solid var(--line);color:var(--grey);padding:8px 14px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12.5px}
+  .btn:hover{border-color:var(--gold)}
+  .btn.gold{background:var(--gold);color:#0a0b0d;border-color:var(--gold)}
+  .status{padding:2px 24px 10px;color:var(--grey);font-size:13px}
+  .status b{color:var(--gold2)}
+
+  /* table */
+  .tablewrap{padding:0 24px 40px;overflow-x:auto}
   table{width:100%;border-collapse:collapse}
-  thead th{position:sticky;top:0;background:var(--panel2);text-align:left;padding:9px 10px;
-    font-size:10px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.8px;color:var(--gold);
-    border-bottom:1px solid var(--gold);cursor:pointer}
-  tbody td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
-  tbody td:nth-child(2){font-family:var(--font-mono);font-size:12px;color:var(--grey2)}
-  .sec h4{color:var(--gold) !important}
-  tbody tr:hover{background:var(--panel2);cursor:pointer}
-  tbody tr.sel{background:#0f1b30}
-  .chip{display:inline-block;background:var(--chip);color:var(--grey2);border:1px solid var(--line);
-    border-radius:2px;padding:1px 7px;font-size:10px;font-family:var(--font-mono);letter-spacing:.3px;
-    text-transform:uppercase;margin:1px 3px 1px 0;white-space:nowrap}
-  .chip.stage{background:rgba(26,108,255,0.12);color:var(--blue2,#3d8bff);border-color:rgba(26,108,255,0.3)}
-  .chip.unk{background:rgba(122,131,148,0.1);color:var(--muted);border-color:var(--line)}
-  .chip.ph{background:rgba(33,160,107,0.18);color:#4fd39a;border-color:rgba(33,160,107,0.4)}
-  /* distress category colors (match Harris) */
-  .dz-flag_preforeclosure{background:rgba(255,107,53,0.15);color:#ff9d73;border-color:rgba(255,107,53,0.4)}
-  .dz-flag_vacant{background:rgba(26,108,255,0.15);color:#6aaeff;border-color:rgba(26,108,255,0.4)}
-  .dz-flag_tax_delinquent{background:rgba(212,160,23,0.15);color:var(--gold2);border-color:rgba(212,160,23,0.4)}
-  .dz-flag_hoa_lien{background:rgba(155,89,182,0.15);color:#c493d6;border-color:rgba(155,89,182,0.4)}
-  .dz-flag_tired_landlord{background:rgba(224,58,58,0.15);color:#f08a8a;border-color:rgba(224,58,58,0.4)}
-  .dz-flag_probate{background:rgba(33,160,107,0.15);color:#4fd39a;border-color:rgba(33,160,107,0.4)}
-  .dz-flag_expired_listing{background:rgba(122,131,148,0.15);color:var(--grey2);border-color:rgba(122,131,148,0.4)}
+  th{position:sticky;top:0;background:#0d0f13;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;
+    color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap;z-index:2}
+  td{padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:hover td{background:rgba(255,255,255,.02)}
+  .owner{font-weight:600}
+  .sub{color:var(--muted);font-size:11.5px;margin-top:2px}
+  .val{font-variant-numeric:tabular-nums;white-space:nowrap}
   .muted{color:var(--muted)}
-  .drawer{position:fixed;top:0;right:0;width:460px;height:100vh;background:var(--panel);
-    border-left:1px solid var(--line);overflow-y:auto;transform:translateX(100%);
-    transition:transform .18s ease;box-shadow:-16px 0 40px rgba(0,0,0,.5);z-index:20}
-  .drawer.open{transform:translateX(0)}
-  .drawer .dhead{padding:16px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--panel)}
-  .drawer .dhead h2{margin:0 0 3px;font-size:16px}
-  .drawer .x{position:absolute;top:14px;right:16px;cursor:pointer;color:var(--muted);font-size:18px}
-  .sec{padding:14px 18px;border-bottom:1px solid var(--line)}
-  .sec h4{margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--accent)}
-  .kv{display:flex;justify-content:space-between;gap:10px;padding:2px 0}
-  .kv span:first-child{color:var(--muted)}
-  .sig{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:8px;margin-bottom:6px}
-  .btn{background:var(--accent-dim);border:1px solid var(--accent);color:var(--txt);padding:6px 10px;
-    border-radius:6px;cursor:pointer;font-size:12px;margin-top:6px}
-  .banner{background:rgba(212,160,23,0.1);border:1px solid rgba(212,160,23,0.35);color:var(--gold2);padding:6px 8px;border-radius:2px;font-size:11px;margin-top:8px;font-family:var(--font-mono)}
-  .toolbar{display:flex;gap:8px;align-items:center;padding:9px 22px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
-  .btn-tool{background:var(--black4);border:1px solid var(--line);color:var(--grey2);font-family:var(--font-mono);
-    font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:6px 12px;border-radius:2px;cursor:pointer}
-  .btn-tool:hover{border-color:var(--gold)}
-  .btn-tool.gold{background:var(--gold);color:#0a0b0d;border-color:var(--gold);font-weight:600}
-  .tb-note{margin-left:auto;font-family:var(--font-mono);font-size:11px;color:var(--muted)}
-  .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:40;place-items:center}
+
+  /* type pills */
+  .type{display:inline-block;padding:3px 9px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.3px;white-space:nowrap}
+  .t-lis{background:rgba(59,130,246,.15);color:#7ab6ff;border:1px solid rgba(59,130,246,.4)}
+  .t-fc{background:rgba(229,72,77,.15);color:#ff8b8e;border:1px solid rgba(229,72,77,.4)}
+  .t-pre{background:rgba(240,150,30,.15);color:#f5b556;border:1px solid rgba(240,150,30,.4)}
+  .t-jud{background:rgba(168,85,247,.15);color:#c99bff;border:1px solid rgba(168,85,247,.4)}
+  .t-tax{background:rgba(20,184,166,.15);color:#5fded0;border:1px solid rgba(20,184,166,.4)}
+  .t-lien{background:rgba(212,160,23,.15);color:var(--gold2);border:1px solid rgba(212,160,23,.4)}
+  .t-def{background:rgba(150,160,175,.12);color:var(--grey);border:1px solid var(--line)}
+  .new{display:inline-block;margin-left:6px;background:var(--green);color:#05230f;font-size:9.5px;font-weight:800;
+    padding:2px 6px;border-radius:4px;letter-spacing:.5px;vertical-align:middle}
+
+  /* flag chips */
+  .flags{display:flex;flex-wrap:wrap;gap:4px;max-width:210px}
+  .fl{font-size:10px;padding:2px 6px;border-radius:3px;font-weight:600;white-space:nowrap;border:1px solid}
+  .fl-vac{color:#f5b556;border-color:rgba(240,150,30,.4);background:rgba(240,150,30,.1)}
+  .fl-tax{color:#5fded0;border-color:rgba(20,184,166,.4);background:rgba(20,184,166,.1)}
+  .fl-hoa{color:var(--gold2);border-color:rgba(212,160,23,.4);background:rgba(212,160,23,.1)}
+  .fl-land{color:#ff8b8e;border-color:rgba(229,72,77,.4);background:rgba(229,72,77,.1)}
+  .fl-prob{color:#e59bd0;border-color:rgba(220,100,180,.4);background:rgba(220,100,180,.1)}
+  .fl-exp{color:#c99bff;border-color:rgba(168,85,247,.4);background:rgba(168,85,247,.1)}
+  .fl-pre{color:#f5b556;border-color:rgba(240,150,30,.4);background:rgba(240,150,30,.1)}
+  .fl-abs{color:var(--grey);border-color:var(--line);background:var(--panel2)}
+  .eq-high{color:var(--green);font-weight:700}
+
+  /* calendar view */
+  .cal{padding:8px 24px 40px}
+  .cal-day{margin-bottom:18px}
+  .cal-date{font-family:var(--font-display);font-size:20px;letter-spacing:1px;color:var(--gold2);border-bottom:1px solid var(--line);padding-bottom:5px;margin-bottom:8px}
+  .cal-row{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+
+  /* calculator modal */
+  .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:50;place-items:center}
   .modal.open{display:grid}
-  .modal-box{background:var(--panel);border:1px solid var(--gold);border-radius:4px;width:380px;max-width:92vw}
-  .modal-head{font-family:var(--font-display);font-size:20px;letter-spacing:1px;color:var(--gold2);padding:14px 16px;border-bottom:1px solid var(--line);position:relative}
-  .modal-head .x{position:absolute;right:14px;top:14px;cursor:pointer;color:var(--muted)}
-  .calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px}
-  .calc-grid label{display:flex;flex-direction:column;gap:4px;font-family:var(--font-mono);font-size:10px;text-transform:uppercase;color:var(--muted)}
-  .calc-out{padding:0 16px 16px}
-  .calc-row{display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--line)}
-  .calc-row b{font-family:var(--font-mono);color:var(--gold2);font-size:16px}
-  .calc-row.muted span{color:var(--muted);font-size:10px}
+  .modal-box{background:var(--panel);border:1px solid var(--gold);border-radius:10px;width:400px;max-width:92vw}
+  .modal-head{font-family:var(--font-display);font-size:22px;letter-spacing:1px;color:var(--gold2);padding:16px 18px;border-bottom:1px solid var(--line);position:relative}
+  .modal-head .x{position:absolute;right:16px;top:15px;cursor:pointer;color:var(--muted)}
+  .calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:18px}
+  .calc-grid label{display:flex;flex-direction:column;gap:5px;font-size:11px;text-transform:uppercase;color:var(--muted)}
+  .calc-grid input{background:var(--panel2);border:1px solid var(--line);color:var(--ink);padding:8px;border-radius:6px}
+  .calc-out{padding:0 18px 18px}
+  .calc-row{display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line)}
+  .calc-row b{font-variant-numeric:tabular-nums;color:var(--gold2);font-size:18px}
+  .calc-row.muted span{color:var(--muted);font-size:11px}
+  .empty{padding:60px 24px;text-align:center;color:var(--muted)}
 </style>
 </head>
 <body>
 <header>
-  <div class="logo">
-    <div class="logo-icon">CB</div>
-    <div>
-      <div class="logo-text">CAMDEN · BURLINGTON INTEL</div>
-      <div class="logo-sub">Motivated Seller Intelligence · filter-driven · no scoring</div>
-    </div>
+  <div class="logo">CB</div>
+  <div class="brand">
+    <h1>Camden · Burlington County Intel</h1>
+    <p>Motivated-seller lead intelligence · <b>Camden</b> + <b>Burlington</b> County, NJ</p>
   </div>
-  <div class="count"><b id="shown">0</b>showing of <span id="total">0</span> parcels</div>
 </header>
-<div class="toolbar">
-  <button class="btn-tool gold" onclick="openCalc()">📐 Deal Calculator</button>
-  <button class="btn-tool" onclick="exportCSV()">⬇ Export CSV (filtered)</button>
-  <span class="tb-note" id="tb-note"></span>
+
+<div class="cards" id="cards"></div>
+
+<div class="views">
+  <button class="view-btn" data-view="new">New Leads</button>
+  <button class="view-btn" data-view="all">All Leads</button>
+  <button class="view-btn" data-view="calendar">Foreclosure Calendar</button>
 </div>
+
+<div class="pills" id="pills"></div>
+
+<div class="toolbar">
+  <input id="q" placeholder="Search owner, address, town…" oninput="render()">
+  <select id="county" onchange="render()">
+    <option value="">All counties</option><option>Camden</option><option>Burlington</option>
+  </select>
+  <select id="sort" onchange="render()">
+    <option value="recent">Newest first</option>
+    <option value="value">Est. value ▼</option>
+    <option value="equity">Est. equity ▼</option>
+    <option value="owner">Owner A–Z</option>
+  </select>
+  <input id="from" type="date" onchange="render()" title="Filed from">
+  <input id="to" type="date" onchange="render()" title="Filed to">
+  <button class="btn gold" onclick="openCalc()">📐 Calculator</button>
+  <button class="btn" onclick="exportCSV()">⬇ Export CSV</button>
+</div>
+
+<div class="status" id="status"></div>
+<div class="tablewrap" id="tablewrap"></div>
+<div class="cal" id="calwrap" style="display:none"></div>
+
 <div class="modal" id="calc-modal">
   <div class="modal-box">
     <div class="modal-head">Deal Calculator <span class="x" onclick="closeCalc()">✕</span></div>
@@ -136,267 +171,181 @@
     </div>
   </div>
 </div>
-<div class="wrap">
-  <aside id="filters">
-    <h3>Search</h3>
-    <input id="q" placeholder="owner, address, party…"/>
-    <h3>County</h3>
-    <select id="f-county" multiple></select>
-    <h3>Municipality</h3>
-    <select id="f-muni" multiple></select>
-    <h3>Doc type</h3>
-    <select id="f-doc" multiple></select>
-    <h3>Lead stage</h3>
-    <select id="f-stage" multiple></select>
-    <h3>Property class</h3>
-    <select id="f-class" multiple></select>
-    <h3>Attributes</h3>
-    <label class="toggle"><input type="checkbox" id="a-absentee"> absentee (mailing ≠ situs)</label>
-    <label class="toggle"><input type="checkbox" id="a-out_of_state"> out-of-state owner</label>
-    <label class="toggle"><input type="checkbox" id="a-long_term_owned"> long-term owned (&gt;15y)</label>
-    <label class="toggle"><input type="checkbox" id="a-high_equity"> high equity (assessed ≥ 2× sale)</label>
-    <label class="toggle"><input type="checkbox" id="a-multiple_distress"> multiple distress (≥2 signals)</label>
-    <div class="banner" id="attr-note" style="display:none"></div>
-    <h3>Distress lists</h3>
-    <label class="toggle"><input type="checkbox" id="d-flag_preforeclosure"> preforeclosure</label>
-    <label class="toggle"><input type="checkbox" id="d-flag_vacant"> vacant</label>
-    <label class="toggle"><input type="checkbox" id="d-flag_tax_delinquent"> tax delinquent</label>
-    <label class="toggle"><input type="checkbox" id="d-flag_hoa_lien"> HOA lien</label>
-    <label class="toggle"><input type="checkbox" id="d-flag_tired_landlord"> tired landlord</label>
-    <label class="toggle"><input type="checkbox" id="d-flag_probate"> probate</label>
-    <label class="toggle"><input type="checkbox" id="d-flag_expired_listing"> expired listing</label>
-    <label class="toggle"><input type="checkbox" id="d-single_family"> single-family only</label>
-    <div class="banner" id="distress-note" style="display:none"></div>
-    <h3>Contact</h3>
-    <label class="toggle"><input type="checkbox" id="c-has_phone"> has phone #</label>
-    <h3>Enrichment</h3>
-    <div class="radio" id="f-enr">
-      <label><input type="radio" name="enr" value="all" checked> all</label>
-      <label><input type="radio" name="enr" value="enriched"> enriched</label>
-      <label><input type="radio" name="enr" value="unenriched"> not enriched</label>
-    </div>
-    <h3>Most-recent date</h3>
-    <div class="row2"><input type="date" id="d-from"><input type="date" id="d-to"></div>
-    <h3>Year built</h3>
-    <div class="row2"><input type="number" id="y-min" placeholder="min"><input type="number" id="y-max" placeholder="max"></div>
-    <button class="reset" id="reset">Reset filters</button>
-  </aside>
-  <main>
-    <table>
-      <thead><tr>
-        <th data-sort="owner">Owner</th><th data-sort="address">Address</th>
-        <th data-sort="municipality">Municipality</th><th>Stage</th>
-        <th>Doc type</th><th data-sort="most_recent_date">Most recent</th><th>Attributes</th>
-      </tr></thead>
-      <tbody id="rows"></tbody>
-    </table>
-  </main>
-</div>
-<div class="drawer" id="drawer"></div>
 
+<script src="data.js"></script>
 <script>
-const DATA = (window.LEADS||{records:[],filters:{}});
-const RECS = DATA.records||[];
-const ENR_ATTRS = ["absentee","out_of_state","long_term_owned","high_equity"]; // enrichment-dependent
-const DISTRESS = ["flag_preforeclosure","flag_vacant","flag_tax_delinquent","flag_hoa_lien","flag_tired_landlord","flag_probate","flag_expired_listing"];
-const DLABEL = {flag_preforeclosure:"preforeclosure",flag_vacant:"vacant",flag_tax_delinquent:"tax delinquent",flag_hoa_lien:"HOA lien",flag_tired_landlord:"tired landlord",flag_probate:"probate",flag_expired_listing:"expired listing"};
-// a record carries distress flags only if it came from a distress-list pull
-const distressKnown = r => r.flag_preforeclosure !== undefined;
-const el = id => document.getElementById(id);
-const isEnriched = r => r.enrichment_status === "ENRICHED";
+const el=id=>document.getElementById(id);
+let BOARD={records:[]}, RECS=[], VIEW="new", PILL="all";
 
-function fill(sel, vals){ el(sel).innerHTML = vals.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join(""); }
-function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
-function selVals(sel){ return [...el(sel).selectedOptions].map(o=>o.value); }
+// ---- distress flag chips ----
+const FLAGS=[["flag_vacant","Vacant","fl-vac"],["flag_tax_delinquent","Tax Delinquent","fl-tax"],
+  ["flag_hoa_lien","HOA Lien","fl-hoa"],["flag_tired_landlord","Tired Landlord","fl-land"],
+  ["flag_probate","Probate","fl-prob"],["flag_expired_listing","Expired Listing","fl-exp"],
+  ["flag_preforeclosure","Preforeclosure","fl-pre"]];
 
-// populate facets
-const f = DATA.filters||{};
-fill("f-county", [...new Set(RECS.map(r=>r.county).filter(Boolean))].sort());
-fill("f-muni", f.municipalities||[]);
-fill("f-doc", f.doc_types||[]);
-fill("f-stage", f.lead_stages||[]);
-fill("f-class", f.property_classes||[]);
-el("total").textContent = RECS.length;
+// ---- filter pill definitions: key + label + predicate ----
+const has=(r,w)=>((r.lead_stages||[]).join(" ")+" "+(r.doc_types||[]).join(" ")+" "+(r.lead_type||"")).toLowerCase().includes(w);
+const PILLS=[
+  ["all","All",()=>true],
+  ["lis","Lis Pendens",r=>has(r,"lis pendens")],
+  ["fc","Foreclosure",r=>has(r,"sheriff")||has(r,"foreclosure")||r.flag_preforeclosure===true],
+  ["tax","Tax",r=>r.flag_tax_delinquent===true||has(r,"tax")],
+  ["jud","Judgment",r=>has(r,"judg")],
+  ["lien","Lien",r=>r.flag_hoa_lien===true||has(r,"lien")],
+  ["probate","Probate",r=>r.flag_probate===true],
+  ["vacant","Vacant",r=>r.flag_vacant===true],
+  ["hoa","HOA Lien",r=>r.flag_hoa_lien===true],
+  ["land","Tired Landlord",r=>r.flag_tired_landlord===true],
+  ["expired","Expired",r=>r.flag_expired_listing===true],
+];
+const pillPred=k=>(PILLS.find(p=>p[0]===k)||PILLS[0])[2];
 
-let sortKey="most_recent_date", sortDir=-1, selId=null;
+// ---- helpers ----
+const money=v=>v?"$"+Math.round(v).toLocaleString():"—";
+const equity=r=>{const ev=r.estimated_value,sp=(r.parcel||{}).last_sale_price;
+  return (ev&&sp&&ev>sp)?ev-sp:null;};
+function typeClass(t){t=(t||"").toLowerCase();
+  if(t.includes("lis"))return"t-lis"; if(t.includes("sheriff")||t.includes("foreclos"))return"t-fc";
+  if(t.includes("prefore"))return"t-pre"; if(t.includes("judg"))return"t-jud";
+  if(t.includes("tax"))return"t-tax"; if(t.includes("lien"))return"t-lien"; return"t-def";}
+function mailing(r){const p=r.parcel||{}; const a=p.owner_mailing_address;
+  if(!a)return""; const cs=[p.owner_mailing_city,p.owner_mailing_state].filter(Boolean).join(", ");
+  return a+(cs?" · "+cs:"")+(p.owner_mailing_zip?" "+p.owner_mailing_zip:"");}
 
-function matches(r){
-  const q = el("q").value.trim().toLowerCase();
-  if(q){
-    const hay = [r.owner, r.address, ...(r.owner_all_parties||[])].join(" ").toLowerCase();
-    if(!hay.includes(q)) return false;
-  }
-  const cty=selVals("f-county"); if(cty.length && !cty.includes(r.county)) return false;
-  const mun=selVals("f-muni"); if(mun.length && !mun.includes(r.municipality)) return false;
-  const doc=selVals("f-doc"); if(doc.length && !(r.doc_types||[]).some(d=>doc.includes(d))) return false;
-  const stg=selVals("f-stage"); if(stg.length && !(r.lead_stages||[]).some(s=>stg.includes(s))) return false;
-  const cls=selVals("f-class"); if(cls.length && !cls.includes(r.property_class)) return false;
-  // multiple_distress is known for every record (signal count)
-  if(el("a-multiple_distress").checked && !r.multiple_distress) return false;
-  // enrichment-dependent attributes: require enriched & true (unenriched excluded, counted separately)
-  for(const a of ENR_ATTRS){ if(el("a-"+a).checked && !(isEnriched(r) && r[a])) return false; }
-  // distress-list flags: require flag===true. A record without the flag is UNKNOWN
-  // (not from a distress list) — excluded from a true-filter, never read as false.
-  for(const f of DISTRESS){ if(el("d-"+f).checked && r[f]!==true) return false; }
-  if(el("d-single_family").checked && r.single_family!==true) return false;
-  if(el("c-has_phone").checked && !((r.contact_phones||[]).length>0)) return false;
-  const enr=[...document.querySelectorAll('input[name=enr]')].find(x=>x.checked).value;
-  if(enr==="enriched" && !isEnriched(r)) return false;
-  if(enr==="unenriched" && isEnriched(r)) return false;
-  const df=el("d-from").value, dt=el("d-to").value, d=r.most_recent_date||"";
-  if(df && d < df) return false;
-  if(dt && d > dt) return false;
-  const ymin=el("y-min").value, ymax=el("y-max").value, yb=r.year_built;
-  if(ymin && (!yb || yb < +ymin)) return false;
-  if(ymax && (!yb || yb > +ymax)) return false;
-  return true;
+// ---- scope: county + date + search + view (NOT the active pill) ----
+function scoped(){
+  const q=el("q").value.trim().toLowerCase(), cty=el("county").value,
+        from=el("from").value, to=el("to").value;
+  return RECS.filter(r=>{
+    if(cty && r.county!==cty) return false;
+    if(VIEW==="new" && r.new!==true) return false;
+    const d=r.most_recent_date||"";
+    if(from && d<from) return false;
+    if(to && d>to) return false;
+    if(q){const hay=[r.owner,r.address,r.municipality,mailing(r)].join(" ").toLowerCase();
+      if(!hay.includes(q)) return false;}
+    return true;
+  });
 }
+function matches(){ return scoped().filter(pillPred(PILL)); }
 
-function attrChips(r){
-  let c="";
-  DISTRESS.forEach(f=>{ if(r[f]===true) c+=`<span class="chip ${f.replace('flag_','dz-flag_')}">${DLABEL[f]}</span>`; });
-  if(!isEnriched(r)) c+=`<span class="chip unk">not enriched</span>`;
-  else ENR_ATTRS.forEach(a=>{ if(r[a]) c+=`<span class="chip">${a.replace(/_/g,' ')}</span>`; });
-  if((r.contact_phones||[]).length) c+=`<span class="chip ph">☎ phone</span>`;
-  if(r.multiple_distress) c+=`<span class="chip">${r.signal_count} signals</span>`;
-  return c || `<span class="muted">—</span>`;
+// ---- render ----
+function sortRows(rows){
+  const s=el("sort").value;
+  const by={recent:(a,b)=>(b.most_recent_date||"").localeCompare(a.most_recent_date||""),
+    value:(a,b)=>(b.estimated_value||0)-(a.estimated_value||0),
+    equity:(a,b)=>(equity(b)||0)-(equity(a)||0),
+    owner:(a,b)=>(a.owner||"").localeCompare(b.owner||"")};
+  return rows.slice().sort(by[s]||by.recent);
 }
-
 function render(){
-  const out = RECS.filter(matches);
-  out.sort((a,b)=>{ const x=a[sortKey]||"",y=b[sortKey]||""; return x<y?sortDir:x>y?-sortDir:0; });
-  el("shown").textContent = out.length;
-  el("rows").innerHTML = out.slice(0,1000).map(r=>`
-    <tr data-id="${esc(r.id)}" class="${r.id===selId?'sel':''}">
-      <td>${esc(r.owner)}${r.owner_corrected?' <span class="chip" title="display owner corrected from LP party">✓owner</span>':''}</td>
-      <td>${esc(r.address)||'<span class=muted>—</span>'}</td>
-      <td>${esc(r.municipality)}</td>
-      <td>${(r.lead_stages||[]).map(s=>`<span class="chip stage">${esc(s)}</span>`).join('')}</td>
-      <td>${(r.doc_types||[]).map(d=>`<span class="chip">${esc(d)}</span>`).join('')}</td>
-      <td>${esc(r.most_recent_date)||'—'}</td>
-      <td>${attrChips(r)}</td>
-    </tr>`).join("");
-  // honest note: how many leads the active attribute filters excluded for being unenriched
-  const attrOn = ENR_ATTRS.some(a=>el("a-"+a).checked);
-  if(attrOn){
-    const hidden = RECS.filter(r=>!isEnriched(r)).length;
-    el("attr-note").style.display="block";
-    el("attr-note").textContent = `Attribute filters apply to enriched leads only. ${hidden} not-enriched parcels (attributes unknown) are not shown as matches — use "not enriched" to review them.`;
-  } else el("attr-note").style.display="none";
-  // honest note for distress-flag filters: records not from a distress list are unknown
-  const dzOn = DISTRESS.some(f=>el("d-"+f).checked) || el("d-single_family").checked;
-  if(dzOn){
-    const unknown = RECS.filter(r=>!distressKnown(r)).length;
-    el("distress-note").style.display="block";
-    el("distress-note").textContent = `Distress flags exist only on distress-list leads. ${unknown} leads (sheriff/court only) are UNKNOWN for these flags — excluded from a true-filter, never counted as "not vacant/etc."`;
-  } else el("distress-note").style.display="none";
-  el("rows").querySelectorAll("tr").forEach(tr=>tr.onclick=()=>openDrawer(tr.dataset.id));
-}
+  const sc=scoped();
+  el("pills").innerHTML=PILLS.map(([k,label,pred])=>{
+    const n=sc.filter(pred).length;
+    return `<span class="pill ${k===PILL?'active':''}" onclick="setPill('${k}')">${label}<span class="n">${n}</span></span>`;
+  }).join("");
 
-function openDrawer(id){
-  const r = RECS.find(x=>x.id===id); if(!r) return; selId=id;
-  const p = r.parcel||{};
-  const money = v => (v==null?'<span class=muted>unknown</span>':'$'+Number(v).toLocaleString());
-  const enrRows = isEnriched(r) ? `
-    <div class="kv"><span>Block / Lot / Qual</span><span>${esc(p.block)} / ${esc(p.lot)} / ${esc(p.qualifier)||'—'}</span></div>
-    <div class="kv"><span>Property class</span><span>${esc(r.property_class)||'—'}</span></div>
-    <div class="kv"><span>Year built</span><span>${esc(r.year_built)||'—'}</span></div>
-    <div class="kv"><span>Assessed value</span><span>${money(r.assessed_value)}</span></div>
-    <div class="kv"><span>Last sale</span><span>${money(p.last_sale_price)} ${p.last_sale_date?('· '+esc(p.last_sale_date)):''}</span></div>
-    <div class="kv"><span>Equity proxy (assessed/sale)</span><span>${r.equity_proxy_ratio!=null?esc(r.equity_proxy_ratio)+'×':'<span class=muted>n/a</span>'}</span></div>
-    <div class="kv"><span>Owner mailing</span><span>${esc(p.owner_mailing_address)||'—'}, ${esc(p.owner_mailing_city)} ${esc(p.owner_mailing_state)} ${esc(p.owner_mailing_zip)}</span></div>
-    <div style="margin-top:6px">${ENR_ATTRS.filter(a=>r[a]).map(a=>`<span class="chip">${a.replace(/_/g,' ')}</span>`).join('')||'<span class=muted>no attribute flags</span>'}</div>`
-    : `<div class="banner">Not enriched — no MOD-IV parcel match. Attributes (absentee / equity / year built) are UNKNOWN for this parcel, not false.</div>`;
-  el("drawer").innerHTML = `
-    <div class="dhead"><span class="x" onclick="closeDrawer()">✕</span>
-      <h2>${esc(r.owner)}</h2>
-      <div class="muted">${esc(r.address)||'address n/a'} · ${esc(r.municipality)}, ${esc(r.county)}</div>
-    </div>
-    <div class="sec"><h4>Lead</h4>
-      <div class="kv"><span>Lead type</span><span>${esc(r.lead_type)}</span></div>
-      <div class="kv"><span>Stages</span><span>${(r.lead_stages||[]).join(', ')}</span></div>
-      <div class="kv"><span>Sources</span><span>${(r.sources||[]).join(', ')}</span></div>
-      <div class="kv"><span>Signals on parcel</span><span>${r.signal_count}${r.multiple_distress?' (multiple distress)':''}</span></div>
-      ${(r.review_flags||[]).length?`<div class="banner">flags: ${r.review_flags.join(', ')}</div>`:''}
-    </div>
-    <div class="sec"><h4>Distress signals</h4>
-      ${distressKnown(r)
-        ? (DISTRESS.filter(f=>r[f]===true).map(f=>`<span class="chip ${f.replace('flag_','dz-flag_')}">${DLABEL[f]}</span>`).join('')
-           + (r.single_family===true?'<span class="chip">single-family</span>':'')
-           || '<span class=muted>on a distress list, no additional flags set</span>')
-        : '<div class="banner">Not from a distress list — vacant / tax-delinquent / probate / etc. are UNKNOWN for this lead, not false.</div>'}
-    </div>
-    <div class="sec"><h4>All parties (record detail)</h4>
-      ${(r.owner_all_parties||[]).map(x=>`<div>${esc(x)}</div>`).join('')||'<span class=muted>—</span>'}
-      ${r.owner_corrected?'<div class="muted" style="margin-top:6px">Primary owner shown is the sheriff-sale-side homeowner (LP party was a government/institutional lienholder).</div>':''}
-    </div>
-    <div class="sec"><h4>Source records</h4>
-      ${(r.signals||[]).map(s=>`<div class="sig">
-        <b>${esc(s.source)}</b> · ${esc(s.doc_type)}<br>
-        <span class="muted">${esc(s.lead_stage)} · ${esc(s.date)||'no date'} · ref ${esc(s.instrument)||'—'}</span></div>`).join('')}
-    </div>
-    <div class="sec"><h4>Parcel & enrichment</h4>${enrRows}</div>
-    <div class="sec"><h4>Contact</h4>
-      ${r.enriched_contact ? `
-        ${r.contact_name?`<div class="kv"><span>Owner</span><span>${esc(r.contact_name)}</span></div>`:''}
-        <div class="kv"><span>Phones</span><span>${(r.contact_phones||[]).map(fmtPhone).join('<br>')||'<span class=muted>none</span>'}</span></div>
-        <div class="kv"><span>Emails</span><span>${(r.contact_emails||[]).map(esc).join('<br>')||'<span class=muted>none</span>'}</span></div>
-        ${r.estimated_value?`<div class="kv"><span>Est. value</span><span>$${Number(r.estimated_value).toLocaleString()}</span></div>`:''}`
-      : `<div class="banner">No contact match — address not found. Try the ${esc(r.municipality)||''} list export.</div>`}
-      <button class="btn" onclick='copyDM(${JSON.stringify(JSON.stringify(dmRow(r)))})'>Copy export row</button>
-    </div>`;
-  el("drawer").classList.add("open"); render();
+  if(VIEW==="calendar"){ renderCalendar(sc); return; }
+  el("calwrap").style.display="none"; el("tablewrap").style.display="";
+
+  const rows=sortRows(matches());
+  const total=RECS.length;
+  el("status").innerHTML = VIEW==="new"
+    ? `Showing <b>${rows.length}</b> new leads since last run (${BOARD.run_date||""})`
+    : `Showing <b>${rows.length}</b> of ${total} leads`;
+
+  if(!rows.length){ el("tablewrap").innerHTML=`<div class="empty">No leads match these filters.</div>`; return; }
+  el("tablewrap").innerHTML=`<table><thead><tr>
+    <th>Type</th><th>Doc</th><th>Filed</th><th>Owner / Grantor</th><th>Property Address</th>
+    <th>Mailing Address</th><th>Est. Value</th><th>Est. Equity</th><th>Flags</th></tr></thead><tbody>${
+    rows.map(rowHTML).join("")}</tbody></table>`;
 }
-function closeDrawer(){ selId=null; el("drawer").classList.remove("open"); render(); }
-function dmRow(r){ const p=r.parcel||{}; return {
-  owner_name:r.owner, property_address:r.address, property_municipality:r.municipality,
-  property_county:r.county, mailing_address:p.owner_mailing_address||"",
-  mailing_city:p.owner_mailing_city||"", mailing_state:p.owner_mailing_state||"", mailing_zip:p.owner_mailing_zip||"",
-  lead_type:r.lead_type, lead_stages:(r.lead_stages||[]).join("|"), sources:(r.sources||[]).join("|"),
-  block:p.block||"", lot:p.lot||"", qualifier:p.qualifier||"" }; }
-function fmtPhone(n){ const d=String(n).replace(/\D/g,''); return d.length===10?`(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}`:esc(n); }
-function copyDM(s){ navigator.clipboard.writeText(s).then(()=>alert("export row copied")); }
-// --- Deal calculator ---
+function rowHTML(r){
+  const eq=equity(r);
+  const chips=FLAGS.filter(([f])=>r[f]===true).map(([f,lbl,cls])=>`<span class="fl ${cls}">${lbl}</span>`).join("")
+    + (r.absentee?`<span class="fl fl-abs">Absentee</span>`:"")
+    + (r.out_of_state?`<span class="fl fl-abs">Out-of-state</span>`:"");
+  const doc=(r.doc_types||[]).filter(x=>x&&x!==r.lead_type).join(", ")||(r.lead_stages||[]).join(", ")||"—";
+  const mail=mailing(r);
+  return `<tr>
+    <td><span class="type ${typeClass(r.lead_type)}">${r.lead_type||"—"}</span>${r.new?'<span class="new">NEW</span>':''}</td>
+    <td class="muted">${doc}</td>
+    <td class="val">${r.most_recent_date||"—"}</td>
+    <td><div class="owner">${r.owner||"—"}</div>${r.signal_count>1?`<div class="sub">${r.signal_count} signals</div>`:""}</td>
+    <td>${r.address||'<span class="muted">— no address —</span>'}<div class="sub">${r.municipality||""} ${r.county}</div></td>
+    <td>${mail?mail:'<span class="muted">—</span>'}</td>
+    <td class="val">${money(r.estimated_value)}</td>
+    <td class="val ${r.high_equity?'eq-high':''}">${eq?money(eq):(r.high_equity?'High':'—')}</td>
+    <td><div class="flags">${chips||'<span class="muted">—</span>'}</div></td>
+  </tr>`;
+}
+function renderCalendar(sc){
+  el("tablewrap").style.display="none"; el("calwrap").style.display="";
+  const fc=sc.filter(r=>has(r,"sheriff")||has(r,"foreclosure")||has(r,"lis pendens")||r.flag_preforeclosure===true)
+    .filter(r=>r.most_recent_date).sort((a,b)=>(a.most_recent_date).localeCompare(b.most_recent_date));
+  el("status").innerHTML=`Foreclosure calendar — <b>${fc.length}</b> foreclosure-track leads by date`;
+  if(!fc.length){el("calwrap").innerHTML=`<div class="empty">No foreclosure-track leads in scope.</div>`;return;}
+  const by={};
+  fc.forEach(r=>{(by[r.most_recent_date]=by[r.most_recent_date]||[]).push(r);});
+  el("calwrap").innerHTML=Object.keys(by).sort().map(d=>`<div class="cal-day">
+    <div class="cal-date">${d}</div>${by[d].map(r=>`<div class="cal-row">
+      <div><span class="type ${typeClass(r.lead_type)}">${r.lead_type}</span> ${r.owner||""}
+        <span class="muted">— ${r.address||r.municipality||""}, ${r.county}</span></div>
+      <div class="val muted">${money(r.estimated_value)}</div></div>`).join("")}</div>`).join("");
+}
+function setPill(k){PILL=k;render();}
+
+// ---- stat cards ----
+function renderCards(){
+  const total=RECS.length||1;
+  const newCount=RECS.filter(r=>r.new===true).length;
+  const withAddr=RECS.filter(r=>(r.address||"").trim()).length;
+  const dr=BOARD.date_range||{};
+  el("cards").innerHTML=[
+    ["Total Records",total.toLocaleString(),"Camden + Burlington"],
+    ["New This Week",newCount.toLocaleString(),`since ${BOARD.run_date||"—"}`],
+    ["With Address",withAddr.toLocaleString(),`${Math.round(100*withAddr/total)}% of board`],
+    ["Date Range",(dr.min||"—").slice(0,7),`${dr.min||"?"} → ${dr.max||"?"}`],
+  ].map(([k,v,s])=>`<div class="card"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s}</div></div>`).join("");
+}
+document.querySelectorAll(".view-btn").forEach(b=>b.onclick=()=>{
+  VIEW=b.dataset.view;
+  document.querySelectorAll(".view-btn").forEach(x=>x.classList.toggle("active",x===b));
+  render();
+});
+
+// ---- calculator ----
 const $c=id=>+(el(id).value||0);
-function openCalc(){ el("calc-modal").classList.add("open"); calc(); }
-function closeCalc(){ el("calc-modal").classList.remove("open"); }
-function calc(){
-  const arv=$c("c-arv"), rep=$c("c-rep"), pct=$c("c-pct")/100, fee=$c("c-fee");
-  const mao=Math.max(0, arv*pct - rep);
+function openCalc(){el("calc-modal").classList.add("open");calc();}
+function closeCalc(){el("calc-modal").classList.remove("open");}
+function calc(){const arv=$c("c-arv"),rep=$c("c-rep"),pct=$c("c-pct")/100,fee=$c("c-fee");
+  const mao=Math.max(0,arv*pct-rep);
   el("c-mao").textContent="$"+Math.round(mao).toLocaleString();
-  el("c-buy").textContent="$"+Math.round(Math.max(0,mao-fee)).toLocaleString();
-}
-// --- CSV export of the current filtered view ---
+  el("c-buy").textContent="$"+Math.round(Math.max(0,mao-fee)).toLocaleString();}
+
+// ---- CSV export (current filtered view) ----
 function exportCSV(){
-  const rows=RECS.filter(matches);
-  const cols=["county","municipality","owner","property_address","mailing_address","lead_type",
-    "lead_stages","distress_flags","absentee","out_of_state","assessed_value","estimated_value",
-    "most_recent_date","phones"];
+  const rows=sortRows(matches());
+  const cols=["county","municipality","type","doc","filed","owner","property_address",
+    "mailing_address","est_value","est_equity","new","flags"];
   const q=v=>`"${String(v==null?"":v).replace(/"/g,'""')}"`;
-  const line=r=>{ const p=r.parcel||{}; return [r.county,r.municipality,r.owner,r.address,
-    p.owner_mailing_address,r.lead_type,(r.lead_stages||[]).join("|"),
-    DISTRESS.filter(f=>r[f]===true).map(f=>DLABEL[f]).join("|"),
-    r.absentee?"Y":"",r.out_of_state?"Y":"",r.assessed_value,r.estimated_value,
-    r.most_recent_date,(r.contact_phones||[]).join(" ")].map(q).join(","); };
+  const line=r=>[r.county,r.municipality,r.lead_type,(r.doc_types||[]).join("|"),r.most_recent_date,
+    r.owner,r.address,mailing(r),r.estimated_value,equity(r),r.new?"NEW":"",
+    FLAGS.filter(([f])=>r[f]===true).map(([,l])=>l).join("|")].map(q).join(",");
   const csv=[cols.map(q).join(","),...rows.map(line)].join("\n");
   const url=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
-  const a=document.createElement("a");
-  a.href=url; a.download=`leads_${rows.length}_${new Date().toISOString().slice(0,10)}.csv`; a.click();
-  URL.revokeObjectURL(url);
-  el("tb-note").textContent=`exported ${rows.length} filtered leads`;
+  const a=document.createElement("a");a.href=url;
+  a.download=`leads_${rows.length}_${(BOARD.run_date||"export")}.csv`;a.click();URL.revokeObjectURL(url);
 }
 
-// wire events
-document.querySelectorAll("aside input, aside select").forEach(x=>{
-  x.addEventListener("input",render); x.addEventListener("change",render);
-});
-document.querySelectorAll("th[data-sort]").forEach(th=>th.onclick=()=>{
-  const k=th.dataset.sort; sortDir = (sortKey===k)? -sortDir : (k==="most_recent_date"?-1:1); sortKey=k; render();
-});
-el("reset").onclick=()=>{ document.querySelectorAll("aside input").forEach(i=>{ if(i.type==='checkbox')i.checked=false; else if(i.type!=='radio')i.value=''; });
-  document.querySelectorAll("aside select").forEach(s=>[...s.options].forEach(o=>o.selected=false));
-  document.querySelector('input[name=enr][value=all]').checked=true; render(); };
-render();
+// ---- boot ----
+function boot(){
+  BOARD=window.LEADS||{records:[]}; RECS=BOARD.records||[];
+  renderCards();
+  document.querySelector('.view-btn[data-view="new"]').classList.add("active");
+  render();
+}
+boot();
 </script>
 </body>
 </html>
