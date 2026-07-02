@@ -236,14 +236,20 @@ function sortRows(rows){
     value:(a,b)=>(b.estimated_value||0)-(a.estimated_value||0),
     equity:(a,b)=>(equity(b)||0)-(equity(a)||0),
     owner:(a,b)=>(a.owner||"").localeCompare(b.owner||"")};
-  return rows.slice().sort(by[s]||by.recent);
+  const cmp=by[s]||by.recent;
+  const incomplete=r=>(r.address||"").trim()?0:1;   // no property address = sink to bottom
+  return rows.slice().sort((a,b)=>incomplete(a)-incomplete(b) || cmp(a,b));
 }
 function render(){
   const sc=scoped();
-  el("pills").innerHTML=PILLS.map(([k,label,pred])=>{
-    const n=sc.filter(pred).length;
-    return `<span class="pill ${k===PILL?'active':''}" onclick="setPill('${k}')">${label}<span class="n">${n}</span></span>`;
-  }).join("");
+  // if the active pill has no matches in this view, fall back to All
+  if(PILL!=="all" && !sc.filter(pillPred(PILL)).length) PILL="all";
+  // hide any pill with a 0 count (All always shows); recomputed every render
+  el("pills").innerHTML=PILLS.filter(([k,,pred])=>k==="all"||sc.filter(pred).length>0)
+    .map(([k,label,pred])=>{
+      const n=sc.filter(pred).length;
+      return `<span class="pill ${k===PILL?'active':''}" onclick="setPill('${k}')">${label}<span class="n">${n}</span></span>`;
+    }).join("");
 
   if(VIEW==="calendar"){ renderCalendar(sc); return; }
   el("calwrap").style.display="none"; el("tablewrap").style.display="";
