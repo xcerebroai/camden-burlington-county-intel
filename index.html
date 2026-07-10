@@ -91,6 +91,9 @@
   .fl-exp{color:#c99bff;border-color:rgba(168,85,247,.4);background:rgba(168,85,247,.1)}
   .fl-pre{color:#f5b556;border-color:rgba(240,150,30,.4);background:rgba(240,150,30,.1)}
   .fl-abs{color:var(--grey);border-color:var(--line);background:var(--panel2)}
+  .fl-imm{color:#fff;border-color:#e5484d;background:rgba(229,72,77,.3);font-weight:800;letter-spacing:.3px;
+    animation:immpulse 1.6s ease-in-out infinite}
+  @keyframes immpulse{50%{background:rgba(229,72,77,.55)}}
   .eq-high{color:var(--green);font-weight:700}
 
   /* calendar view */
@@ -185,10 +188,33 @@ const FLAGS=[["flag_vacant","Vacant","fl-vac"],["flag_tax_delinquent","Tax Delin
 
 // ---- filter pill definitions: key + label + predicate ----
 const has=(r,w)=>((r.lead_stages||[]).join(" ")+" "+(r.doc_types||[]).join(" ")+" "+(r.lead_type||"")).toLowerCase().includes(w);
+
+// ---- foreclosure urgency tiers (client-side only, from existing signals) ----
+const isFC=r=>has(r,"sheriff")||has(r,"foreclosure")||has(r,"lis pendens")||r.flag_preforeclosure===true;
+const todayISO=()=>new Date().toISOString().slice(0,10);
+function saleDate(r){  // earliest still-upcoming sheriff-sale date
+  const t=todayISO();
+  const ds=(r.signals||[]).filter(s=>(s.doc_type||"").toUpperCase().includes("SHERIFF")&&(s.date||"")>=t)
+    .map(s=>s.date).sort();
+  return ds[0]||null;
+}
+const daysUntil=iso=>Math.round((new Date(iso)-new Date(todayISO()))/864e5);
+function urgency(r){
+  if(!isFC(r)) return null;
+  const sd=saleDate(r);
+  if(sd) return daysUntil(sd)<=30?"imminent":"upcoming";
+  const d=r.most_recent_date;
+  return (d&&daysUntil(d)>=-90)?"early":"aging";   // no upcoming sale: age of last filing
+}
+
 const PILLS=[
   ["all","All",()=>true],
   ["lis","Lis Pendens",r=>has(r,"lis pendens")],
   ["fc","Foreclosure",r=>has(r,"sheriff")||has(r,"foreclosure")||r.flag_preforeclosure===true],
+  ["imminent","🔥 Imminent Sale ≤30d",r=>urgency(r)==="imminent"],
+  ["upcoming","Sale 30–90d",r=>urgency(r)==="upcoming"],
+  ["earlyfc","Early-stage FC",r=>urgency(r)==="early"],
+  ["agingfc","Aging FC / no sale",r=>urgency(r)==="aging"],
   ["tax","Tax",r=>r.flag_tax_delinquent===true||has(r,"tax")],
   ["jud","Judgment",r=>has(r,"judg")],
   ["lien","Lien",r=>r.flag_hoa_lien===true||has(r,"lien")],
@@ -238,7 +264,13 @@ function sortRows(rows){
     owner:(a,b)=>(a.owner||"").localeCompare(b.owner||"")};
   const cmp=by[s]||by.recent;
   const incomplete=r=>(r.address||"").trim()?0:1;   // no property address = sink to bottom
-  return rows.slice().sort((a,b)=>incomplete(a)-incomplete(b) || cmp(a,b));
+  // default sort surfaces scheduled sheriff sales first (soonest sale on top);
+  // explicit sorts (value/equity/owner) are left exactly as chosen
+  const urank=r=>{const u=urgency(r);return u==="imminent"?0:u==="upcoming"?1:2;};
+  const bySale=(a,b)=>(saleDate(a)||"9999").localeCompare(saleDate(b)||"9999");
+  return rows.slice().sort((a,b)=>incomplete(a)-incomplete(b)
+    || (s==="recent"?(urank(a)-urank(b) || (urank(a)<2?bySale(a,b):0)):0)
+    || cmp(a,b));
 }
 function render(){
   const sc=scoped();
@@ -273,8 +305,10 @@ function rowHTML(r){
     + (r.out_of_state?`<span class="fl fl-abs">Out-of-state</span>`:"");
   const doc=(r.doc_types||[]).filter(x=>x&&x!==r.lead_type).join(", ")||(r.lead_stages||[]).join(", ")||"—";
   const mail=mailing(r);
+  const u=urgency(r), sd=saleDate(r);
+  const immChip=u==="imminent"?`<div style="margin-top:4px"><span class="fl fl-imm">⚠ SALE ${sd} · ${daysUntil(sd)}d</span></div>`:"";
   return `<tr>
-    <td><span class="type ${typeClass(r.lead_type)}">${r.lead_type||"—"}</span>${r.new?'<span class="new">NEW</span>':''}</td>
+    <td><span class="type ${typeClass(r.lead_type)}">${r.lead_type||"—"}</span>${r.new?'<span class="new">NEW</span>':''}${immChip}</td>
     <td class="muted">${doc}</td>
     <td class="val">${r.most_recent_date||"—"}</td>
     <td><div class="owner">${r.owner||"—"}</div>${r.signal_count>1?`<div class="sub">${r.signal_count} signals</div>`:""}</td>
